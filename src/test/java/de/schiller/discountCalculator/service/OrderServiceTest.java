@@ -1,19 +1,26 @@
 package de.schiller.discountCalculator.service;
 
+import de.schiller.discountCalculator.config.DiscountSettings;
 import de.schiller.discountCalculator.dto.ItemRequest;
 import de.schiller.discountCalculator.dto.OrderRequest;
 import de.schiller.discountCalculator.dto.OrderResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 class OrderServiceTest {
+
+    @Mock
+    private DiscountSettings discountSettings;
 
     @InjectMocks
     private OrderService orderService;
@@ -21,6 +28,14 @@ class OrderServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+
+        Map<Double, Double> minValueMap = Map.of(
+                0.0, 0.0,
+                100.0, 5.0,
+                500.0, 10.0,
+                1000.0, 15.0
+        );
+        when(discountSettings.getMinValue()).thenReturn(minValueMap);
     }
 
     private static void assertResponse(OrderResponse response, String customerName, BigDecimal totalAmount, BigDecimal discountedAmount, double discountedPercentage) {

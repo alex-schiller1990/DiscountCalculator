@@ -1,16 +1,27 @@
 package de.schiller.discountCalculator.service;
 
+import de.schiller.discountCalculator.config.DiscountSettings;
 import de.schiller.discountCalculator.dto.ItemRequest;
 import de.schiller.discountCalculator.dto.OrderRequest;
 import de.schiller.discountCalculator.dto.OrderResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 @Service
 public class OrderService {
+
+    private final DiscountSettings discountSettings;
+
+    @Autowired
+    public OrderService(DiscountSettings discountSettings) {
+        this.discountSettings = discountSettings;
+    }
 
     public OrderResponse createOrder(OrderRequest orderRequest) {
         BigDecimal totalAmount = calculateTotalAmount(orderRequest.items());
@@ -31,9 +42,17 @@ public class OrderService {
         return totalAmount;
     }
 
-    //TODO
     private double getDiscountPercentage(BigDecimal totalAmount) {
-        return 0;
+        double discountPercentage = 0;
+        Map<Double, Double> minValueMap = new TreeMap<>(discountSettings.getMinValue());
+        for (Map.Entry<Double, Double> entry : minValueMap.entrySet()) {
+            if (totalAmount.compareTo(BigDecimal.valueOf(entry.getKey())) > -1) {
+                discountPercentage = entry.getValue();
+            } else {
+                break;
+            }
+        }
+        return discountPercentage;
     }
 
     private BigDecimal calculateDiscountedAmount(BigDecimal totalAmount, double discountPercentage) {
