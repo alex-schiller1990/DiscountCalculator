@@ -72,4 +72,22 @@ class OrderServiceTest {
         assertResponse(response, "customer3", BigDecimal.valueOf(200), BigDecimal.valueOf(190), 5);
     }
 
+    @Test
+    void testCreateOrderWithTenPercentDiscount() {
+        List<ItemRequest> items = List.of(new ItemRequest("p1", BigDecimal.valueOf(700), 1));
+        OrderRequest orderRequest = new OrderRequest("customer3", items);
+
+        OrderResponse response = orderService.createOrder(orderRequest);
+        assertResponse(response, "customer3", BigDecimal.valueOf(700), BigDecimal.valueOf(630), 10);
+    }
+
+    @Test
+    void testCreateOrderWithFifteenPercentDiscount() {
+        List<ItemRequest> items = List.of(new ItemRequest("p1", BigDecimal.valueOf(1100), 1));
+        OrderRequest orderRequest = new OrderRequest("customer3", items);
+
+        OrderResponse response = orderService.createOrder(orderRequest);
+        assertResponse(response, "customer3", BigDecimal.valueOf(1100), BigDecimal.valueOf(935), 15);
+    }
+
 }
