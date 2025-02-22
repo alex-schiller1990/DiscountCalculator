@@ -23,10 +23,10 @@ class OrderServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    private static void assertResponse(OrderResponse response, String customerName, BigDecimal totalAmount, BigDecimal discountedAmount, int discountedPercentage) {
+    private static void assertResponse(OrderResponse response, String customerName, BigDecimal totalAmount, BigDecimal discountedAmount, double discountedPercentage) {
         assertEquals(customerName, response.customerName());
-        assertEquals(totalAmount, response.totalAmount());
-        assertEquals(discountedAmount, response.discountedAmount());
+        assertEquals(0, totalAmount.compareTo(response.totalAmount()));
+        assertEquals(0, discountedAmount.compareTo(response.discountedAmount()));
         assertEquals(discountedPercentage, response.discountPercentage());
     }
 
@@ -41,11 +41,11 @@ class OrderServiceTest {
 
     @Test
     void testCreateOrderWithNoDiscountMultipleProducts() {
-        List<ItemRequest> items = List.of(new ItemRequest("p1", BigDecimal.ONE, 2), new ItemRequest("p2", new BigDecimal("97.99"), 1));
+        List<ItemRequest> items = List.of(new ItemRequest("p1", BigDecimal.ONE, 2), new ItemRequest("p2", BigDecimal.valueOf(97.99), 1));
         OrderRequest orderRequest = new OrderRequest("customer2", items);
 
         OrderResponse response = orderService.createOrder(orderRequest);
-        assertResponse(response, "customer2", new BigDecimal("99.99"), new BigDecimal("99.99"), 0);
+        assertResponse(response, "customer2", BigDecimal.valueOf(99.99), BigDecimal.valueOf(99.99), 0);
     }
 
 }
