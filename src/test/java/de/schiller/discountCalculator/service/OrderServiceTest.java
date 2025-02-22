@@ -48,4 +48,13 @@ class OrderServiceTest {
         assertResponse(response, "customer2", BigDecimal.valueOf(99.99), BigDecimal.valueOf(99.99), 0);
     }
 
+    @Test
+    void testCreateOrderWithFivePercentDiscount() {
+        List<ItemRequest> items = List.of(new ItemRequest("p1", BigDecimal.valueOf(200), 1));
+        OrderRequest orderRequest = new OrderRequest("customer3", items);
+
+        OrderResponse response = orderService.createOrder(orderRequest);
+        assertResponse(response, "customer3", BigDecimal.valueOf(200), BigDecimal.valueOf(190), 5);
+    }
+
 }
