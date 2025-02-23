@@ -5,11 +5,11 @@ import de.schiller.discountCalculator.dto.OrderRequest;
 import de.schiller.discountCalculator.dto.OrderResponse;
 import de.schiller.discountCalculator.model.Order;
 import de.schiller.discountCalculator.repository.OrderRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
 
     @Mock
@@ -30,10 +31,7 @@ class OrderServiceTest {
     @InjectMocks
     private OrderService orderService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-
+    private void initOrderRepositorySaveMock() {
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order order = invocation.getArgument(0);
             return new Order(1L, order.getCustomerName(), order.getTotalAmount(), order.getDiscountedAmount(), order.getDiscountPercentage(), order.getOrderItems());
@@ -55,6 +53,8 @@ class OrderServiceTest {
         List<ItemRequest> items = List.of(new ItemRequest("p1", BigDecimal.ONE, 1));
         OrderRequest orderRequest = new OrderRequest("customer1", items);
 
+        initOrderRepositorySaveMock();
+
         when(discountService.getDiscountPercentage(BigDecimal.ONE)).thenReturn(0.0);
         when(discountService.calculateDiscountedAmount(BigDecimal.ONE, 0)).thenReturn(BigDecimal.ONE);
 
@@ -66,6 +66,8 @@ class OrderServiceTest {
     void testCreateOrderWithOneProductMultipleQuantity() {
         List<ItemRequest> items = List.of(new ItemRequest("p1", BigDecimal.TWO, 3));
         OrderRequest orderRequest = new OrderRequest("customer2", items);
+
+        initOrderRepositorySaveMock();
 
         BigDecimal bigDecimalSix = BigDecimal.valueOf(6);
         when(discountService.getDiscountPercentage(bigDecimalSix)).thenReturn(0.0);
@@ -82,6 +84,8 @@ class OrderServiceTest {
                 new ItemRequest("p2", BigDecimal.valueOf(100), 2),
                 new ItemRequest("p3", BigDecimal.valueOf(500), 1));
         OrderRequest orderRequest = new OrderRequest("customer3", items);
+
+        initOrderRepositorySaveMock();
 
         BigDecimal expectedTotal = BigDecimal.valueOf(706);
         BigDecimal expectDiscount = BigDecimal.valueOf(635.4);

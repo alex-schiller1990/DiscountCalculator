@@ -1,12 +1,12 @@
 package de.schiller.discountCalculator.service;
 
 import de.schiller.discountCalculator.config.DiscountSettings;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -14,6 +14,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class DiscountServiceTest {
 
     @Mock
@@ -21,11 +22,6 @@ class DiscountServiceTest {
 
     @InjectMocks
     private DiscountService discountService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @ParameterizedTest
     @CsvSource({
