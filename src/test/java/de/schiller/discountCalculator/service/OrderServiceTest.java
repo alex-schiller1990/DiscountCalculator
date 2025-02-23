@@ -1,6 +1,5 @@
 package de.schiller.discountCalculator.service;
 
-import de.schiller.discountCalculator.config.DiscountSettings;
 import de.schiller.discountCalculator.dto.ItemRequest;
 import de.schiller.discountCalculator.dto.OrderRequest;
 import de.schiller.discountCalculator.dto.OrderResponse;
@@ -12,7 +11,6 @@ import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -20,7 +18,7 @@ import static org.mockito.Mockito.when;
 class OrderServiceTest {
 
     @Mock
-    private DiscountSettings discountSettings;
+    private DiscountService discountService;
 
     @InjectMocks
     private OrderService orderService;
@@ -28,66 +26,57 @@ class OrderServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-
-        Map<Double, Double> minValueMap = Map.of(
-                0.0, 0.0,
-                100.0, 5.0,
-                500.0, 10.0,
-                1000.0, 15.0
-        );
-        when(discountSettings.getMinValue()).thenReturn(minValueMap);
     }
 
     private static void assertResponse(OrderResponse response, String customerName, BigDecimal totalAmount, BigDecimal discountedAmount, double discountedPercentage) {
         assertEquals(customerName, response.customerName());
-        assertEquals(0, totalAmount.compareTo(response.totalAmount()));
-        assertEquals(0, discountedAmount.compareTo(response.discountedAmount()));
+        assertEquals(0, totalAmount.compareTo(response.totalAmount()),
+                () -> String.format("Expected Total Amount: %s, but was: %s", totalAmount, response.totalAmount()));
+        assertEquals(0, discountedAmount.compareTo(response.discountedAmount()),
+                () -> String.format("Expected Discounted Amount: %s, but was: %s", discountedAmount, response.discountedAmount()));
         assertEquals(discountedPercentage, response.discountPercentage());
     }
 
     @Test
-    void testCreateOrderWithNoDiscount() {
+    void testCreateOrderWithOneProduct() {
         List<ItemRequest> items = List.of(new ItemRequest("p1", BigDecimal.ONE, 1));
         OrderRequest orderRequest = new OrderRequest("customer1", items);
+
+        when(discountService.getDiscountPercentage(BigDecimal.ONE)).thenReturn(0.0);
+        when(discountService.calculateDiscountedAmount(BigDecimal.ONE, 0)).thenReturn(BigDecimal.ONE);
 
         OrderResponse response = orderService.createOrder(orderRequest);
         assertResponse(response, "customer1", BigDecimal.ONE, BigDecimal.ONE, 0);
     }
 
     @Test
-    void testCreateOrderWithNoDiscountMultipleProducts() {
-        List<ItemRequest> items = List.of(new ItemRequest("p1", BigDecimal.ONE, 2), new ItemRequest("p2", BigDecimal.valueOf(97.99), 1));
+    void testCreateOrderWithOneProductMultipleQuantity() {
+        List<ItemRequest> items = List.of(new ItemRequest("p1", BigDecimal.TWO, 3));
         OrderRequest orderRequest = new OrderRequest("customer2", items);
 
+        BigDecimal bigDecimalSix = BigDecimal.valueOf(6);
+        when(discountService.getDiscountPercentage(bigDecimalSix)).thenReturn(0.0);
+        when(discountService.calculateDiscountedAmount(bigDecimalSix, 0)).thenReturn(bigDecimalSix);
+
         OrderResponse response = orderService.createOrder(orderRequest);
-        assertResponse(response, "customer2", BigDecimal.valueOf(99.99), BigDecimal.valueOf(99.99), 0);
+        assertResponse(response, "customer2", bigDecimalSix, bigDecimalSix, 0);
     }
 
     @Test
-    void testCreateOrderWithFivePercentDiscount() {
-        List<ItemRequest> items = List.of(new ItemRequest("p1", BigDecimal.valueOf(200), 1));
+    void testCreateOrderWithMultipleProductMultipleQuantity() {
+        List<ItemRequest> items = List.of(
+                new ItemRequest("p1", BigDecimal.TWO, 3),
+                new ItemRequest("p2", BigDecimal.valueOf(100), 2),
+                new ItemRequest("p3", BigDecimal.valueOf(500), 1));
         OrderRequest orderRequest = new OrderRequest("customer3", items);
 
-        OrderResponse response = orderService.createOrder(orderRequest);
-        assertResponse(response, "customer3", BigDecimal.valueOf(200), BigDecimal.valueOf(190), 5);
-    }
-
-    @Test
-    void testCreateOrderWithTenPercentDiscount() {
-        List<ItemRequest> items = List.of(new ItemRequest("p1", BigDecimal.valueOf(700), 1));
-        OrderRequest orderRequest = new OrderRequest("customer3", items);
+        BigDecimal expectedTotal = BigDecimal.valueOf(706);
+        BigDecimal expectDiscount = BigDecimal.valueOf(635.4);
+        when(discountService.getDiscountPercentage(expectedTotal)).thenReturn(10.0);
+        when(discountService.calculateDiscountedAmount(expectedTotal, 10)).thenReturn(expectDiscount);
 
         OrderResponse response = orderService.createOrder(orderRequest);
-        assertResponse(response, "customer3", BigDecimal.valueOf(700), BigDecimal.valueOf(630), 10);
-    }
-
-    @Test
-    void testCreateOrderWithFifteenPercentDiscount() {
-        List<ItemRequest> items = List.of(new ItemRequest("p1", BigDecimal.valueOf(1100), 1));
-        OrderRequest orderRequest = new OrderRequest("customer3", items);
-
-        OrderResponse response = orderService.createOrder(orderRequest);
-        assertResponse(response, "customer3", BigDecimal.valueOf(1100), BigDecimal.valueOf(935), 15);
+        assertResponse(response, "customer3", expectedTotal, expectDiscount, 10);
     }
 
 }
