@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class OrderService {
@@ -36,8 +37,7 @@ public class OrderService {
         order.setOrderItems(orderItems);
         Order savedOrder = orderRepository.save(order);
 
-        return new OrderResponse(savedOrder.getOrderId(), savedOrder.getCustomerName(), savedOrder.getTotalAmount(),
-                savedOrder.getDiscountedAmount(), savedOrder.getDiscountPercentage());
+        return buildOrderResponse(savedOrder);
     }
 
     private BigDecimal calculateTotalAmount(List<ItemRequest> items) {
@@ -46,6 +46,25 @@ public class OrderService {
             totalAmount = totalAmount.add(item.price().multiply(new BigDecimal(item.quantity())));
         }
         return totalAmount;
+    }
+
+    public OrderResponse getOrderById(Long orderId) {
+        Optional<Order> order = orderRepository.findById(orderId);
+        return order.map(this::buildOrderResponse).orElse(null);
+    }
+
+    public List<OrderResponse> getAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        return orders.stream().map(this::buildOrderResponse).toList();
+    }
+
+    private OrderResponse buildOrderResponse(Order order) {
+        return new OrderResponse(
+                order.getOrderId(),
+                order.getCustomerName(),
+                order.getTotalAmount(),
+                order.getDiscountedAmount(),
+                order.getDiscountPercentage());
     }
 
 }

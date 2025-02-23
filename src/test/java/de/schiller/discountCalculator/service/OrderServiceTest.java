@@ -13,6 +13,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -39,8 +40,8 @@ class OrderServiceTest {
         });
     }
 
-    private static void assertResponse(OrderResponse response, String customerName, BigDecimal totalAmount, BigDecimal discountedAmount, double discountedPercentage) {
-        assertEquals(1L, response.orderId());
+    private static void assertOrderResponse(OrderResponse response, Long orderID, String customerName, BigDecimal totalAmount, BigDecimal discountedAmount, double discountedPercentage) {
+        assertEquals(orderID, response.orderId());
         assertEquals(customerName, response.customerName());
         assertEquals(0, totalAmount.compareTo(response.totalAmount()),
                 () -> String.format("Expected Total Amount: %s, but was: %s", totalAmount, response.totalAmount()));
@@ -58,7 +59,7 @@ class OrderServiceTest {
         when(discountService.calculateDiscountedAmount(BigDecimal.ONE, 0)).thenReturn(BigDecimal.ONE);
 
         OrderResponse response = orderService.createOrder(orderRequest);
-        assertResponse(response, "customer1", BigDecimal.ONE, BigDecimal.ONE, 0);
+        assertOrderResponse(response, 1L, "customer1", BigDecimal.ONE, BigDecimal.ONE, 0);
     }
 
     @Test
@@ -71,7 +72,7 @@ class OrderServiceTest {
         when(discountService.calculateDiscountedAmount(bigDecimalSix, 0)).thenReturn(bigDecimalSix);
 
         OrderResponse response = orderService.createOrder(orderRequest);
-        assertResponse(response, "customer2", bigDecimalSix, bigDecimalSix, 0);
+        assertOrderResponse(response, 1L, "customer2", bigDecimalSix, bigDecimalSix, 0);
     }
 
     @Test
@@ -88,7 +89,31 @@ class OrderServiceTest {
         when(discountService.calculateDiscountedAmount(expectedTotal, 10)).thenReturn(expectDiscount);
 
         OrderResponse response = orderService.createOrder(orderRequest);
-        assertResponse(response, "customer3", expectedTotal, expectDiscount, 10);
+        assertOrderResponse(response, 1L, "customer3", expectedTotal, expectDiscount, 10);
+    }
+
+    @Test
+    void testGetOrderById() {
+        Order order = new Order(1L, "customer", BigDecimal.ONE, BigDecimal.ONE, 0.0, List.of());
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+
+        OrderResponse response = orderService.getOrderById(1L);
+        assertOrderResponse(response, 1L, "customer", BigDecimal.ONE, BigDecimal.ONE, 0);
+    }
+
+    @Test
+    void testGetAllOrders() {
+        List<Order> orders = List.of(
+                new Order(1L, "customer", BigDecimal.ONE, BigDecimal.ONE, 0.0, List.of()),
+                new Order(2L, "customer2", BigDecimal.TWO, BigDecimal.TWO, 0.0, List.of())
+        );
+        when(orderRepository.findAll()).thenReturn(orders);
+
+        List<OrderResponse> result = orderService.getAllOrders();
+
+        assertEquals(orders.size(), result.size());
+        assertOrderResponse(result.getFirst(), 1L, "customer", BigDecimal.ONE, BigDecimal.ONE, 0.0);
+        assertOrderResponse(result.getLast(), 2L, "customer2", BigDecimal.TWO, BigDecimal.TWO, 0.0);
     }
 
 }
