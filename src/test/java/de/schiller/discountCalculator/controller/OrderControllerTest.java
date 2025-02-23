@@ -43,7 +43,7 @@ class OrderControllerTest {
     }
 
     @Test
-    void testCreateOrderSuccess() throws Exception {
+    void testCreateOrder_Success() throws Exception {
         OrderRequest orderRequest = new OrderRequest("customer", List.of(new ItemRequest("product", BigDecimal.TEN, 2)));
         OrderResponse orderResponse = new OrderResponse(1L, "customer", BigDecimal.valueOf(20), BigDecimal.valueOf(20), 0.0);
 
@@ -62,7 +62,7 @@ class OrderControllerTest {
     }
 
     @Test
-    void testGetOrderByIdSuccess() throws Exception {
+    void testGetOrderById_Success() throws Exception {
         Long orderId = 1L;
         OrderResponse orderResponse = new OrderResponse(orderId, "customer", BigDecimal.ONE, BigDecimal.ONE, 0.0);
         when(orderService.getOrderById(orderId)).thenReturn(orderResponse);
@@ -78,7 +78,7 @@ class OrderControllerTest {
     }
 
     @Test
-    void testGetOrderByIdNotFound() throws Exception {
+    void testGetOrderById_NotFound() throws Exception {
         when(orderService.getOrderById(1L)).thenReturn(null);
 
         mockMvc.perform(get("/orders/1"))
@@ -86,7 +86,7 @@ class OrderControllerTest {
     }
 
     @Test
-    void testGetAllOrdersSuccess() throws Exception {
+    void testGetAllOrders_Success() throws Exception {
         List<OrderResponse> mockOrders = List.of(
                 new OrderResponse(1L, "customer", BigDecimal.ONE, BigDecimal.ONE, 0.0),
                 new OrderResponse(2L, "customer2", BigDecimal.valueOf(100), BigDecimal.valueOf(95), 5.0)
@@ -109,7 +109,7 @@ class OrderControllerTest {
     }
 
     @Test
-    void testGetAllOrdersEmptyList() throws Exception {
+    void testGetAllOrders_EmptyList() throws Exception {
         when(orderService.getAllOrders()).thenReturn(List.of());
 
         mockMvc.perform(get("/orders")

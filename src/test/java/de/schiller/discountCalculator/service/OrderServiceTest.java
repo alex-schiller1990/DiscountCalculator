@@ -49,7 +49,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void testCreateOrderWithOneProduct() {
+    void testCreateOrder_WithOneProduct() {
         List<ItemRequest> items = List.of(new ItemRequest("p1", BigDecimal.ONE, 1));
         OrderRequest orderRequest = new OrderRequest("customer1", items);
 
@@ -63,7 +63,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void testCreateOrderWithOneProductMultipleQuantity() {
+    void testCreateOrder_WithOneProduct_MultipleQuantity() {
         List<ItemRequest> items = List.of(new ItemRequest("p1", BigDecimal.TWO, 3));
         OrderRequest orderRequest = new OrderRequest("customer2", items);
 
@@ -78,7 +78,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void testCreateOrderWithMultipleProductMultipleQuantity() {
+    void testCreateOrder_WithMultipleProduct_MultipleQuantity() {
         List<ItemRequest> items = List.of(
                 new ItemRequest("p1", BigDecimal.TWO, 3),
                 new ItemRequest("p2", BigDecimal.valueOf(100), 2),
