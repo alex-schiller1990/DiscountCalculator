@@ -3,6 +3,9 @@ package de.schiller.discountCalculator.service;
 import de.schiller.discountCalculator.dto.ItemRequest;
 import de.schiller.discountCalculator.dto.OrderRequest;
 import de.schiller.discountCalculator.dto.OrderResponse;
+import de.schiller.discountCalculator.model.Order;
+import de.schiller.discountCalculator.model.OrderItem;
+import de.schiller.discountCalculator.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,10 +16,12 @@ import java.util.List;
 public class OrderService {
 
     private final DiscountService discountService;
+    private final OrderRepository orderRepository;
 
     @Autowired
-    public OrderService(DiscountService discountService) {
+    public OrderService(DiscountService discountService, OrderRepository orderRepository) {
         this.discountService = discountService;
+        this.orderRepository = orderRepository;
     }
 
     public OrderResponse createOrder(OrderRequest orderRequest) {
@@ -24,10 +29,15 @@ public class OrderService {
         double discountPercentage = discountService.getDiscountPercentage(totalAmount);
         BigDecimal discountedAmount = discountService.calculateDiscountedAmount(totalAmount, discountPercentage);
 
-        //TODO Create Order and OrderItem Object and save in Database
+        Order order = new Order(null, orderRequest.customerName(), totalAmount, discountedAmount, discountPercentage, null);
+        List<OrderItem> orderItems = orderRequest.items().stream().map(item ->
+                new OrderItem(null, item.productName(), item.price(), item.quantity(), order))
+                .toList();
+        order.setOrderItems(orderItems);
+        Order savedOrder = orderRepository.save(order);
 
-        //TODO create Response from the values of the saved Order Object
-        return new OrderResponse(null, orderRequest.customerName(), totalAmount, discountedAmount, discountPercentage);
+        return new OrderResponse(savedOrder.getOrderId(), savedOrder.getCustomerName(), savedOrder.getTotalAmount(),
+                savedOrder.getDiscountedAmount(), savedOrder.getDiscountPercentage());
     }
 
     private BigDecimal calculateTotalAmount(List<ItemRequest> items) {

@@ -3,6 +3,8 @@ package de.schiller.discountCalculator.service;
 import de.schiller.discountCalculator.dto.ItemRequest;
 import de.schiller.discountCalculator.dto.OrderRequest;
 import de.schiller.discountCalculator.dto.OrderResponse;
+import de.schiller.discountCalculator.model.Order;
+import de.schiller.discountCalculator.repository.OrderRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -13,6 +15,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 class OrderServiceTest {
@@ -20,15 +23,24 @@ class OrderServiceTest {
     @Mock
     private DiscountService discountService;
 
+    @Mock
+    private OrderRepository orderRepository;
+
     @InjectMocks
     private OrderService orderService;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
+            Order order = invocation.getArgument(0);
+            return new Order(1L, order.getCustomerName(), order.getTotalAmount(), order.getDiscountedAmount(), order.getDiscountPercentage(), order.getOrderItems());
+        });
     }
 
     private static void assertResponse(OrderResponse response, String customerName, BigDecimal totalAmount, BigDecimal discountedAmount, double discountedPercentage) {
+        assertEquals(1L, response.orderId());
         assertEquals(customerName, response.customerName());
         assertEquals(0, totalAmount.compareTo(response.totalAmount()),
                 () -> String.format("Expected Total Amount: %s, but was: %s", totalAmount, response.totalAmount()));
