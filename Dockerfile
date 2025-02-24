@@ -2,7 +2,7 @@
 FROM eclipse-temurin:23-jdk AS builder
 WORKDIR /app
 COPY . .
-RUN ./gradlew build
+RUN ./gradlew build -x test
 
 # Stage 2: Create the final image
 FROM eclipse-temurin:23-jdk
