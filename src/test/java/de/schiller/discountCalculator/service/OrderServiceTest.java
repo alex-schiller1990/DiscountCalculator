@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -17,7 +18,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
@@ -120,4 +122,22 @@ class OrderServiceTest {
         assertOrderResponse(result.getLast(), 2L, "customer2", BigDecimal.TWO, BigDecimal.TWO, 0.0);
     }
 
+    @Test
+    void testDeleteOrderById_Success() {
+        when(orderRepository.existsById(anyLong())).thenReturn(true);
+        doNothing().when(orderRepository).deleteById(anyLong());
+
+        orderService.deleteOrderById(1L);
+
+        verify(orderRepository, times(1)).deleteById(1L);
+    }
+
+    @Test
+    void testDeleteUserById_UserNotFound() {
+        when(orderRepository.existsById(anyLong())).thenReturn(false);
+
+        assertThrows(ResourceNotFoundException.class, () -> orderService.deleteOrderById(1L));
+
+        verify(orderRepository, never()).deleteById(1L);
+    }
 }

@@ -7,6 +7,7 @@ import de.schiller.discountCalculator.model.Order;
 import de.schiller.discountCalculator.model.OrderItem;
 import de.schiller.discountCalculator.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -65,6 +66,13 @@ public class OrderService {
                 order.getTotalAmount(),
                 order.getDiscountedAmount(),
                 order.getDiscountPercentage());
+    }
+
+    public void deleteOrderById(Long orderId) {
+        if (!orderRepository.existsById(orderId)) {
+            throw new ResourceNotFoundException("Order not found with id: " + orderId);
+        }
+        orderRepository.deleteById(orderId);
     }
 
 }

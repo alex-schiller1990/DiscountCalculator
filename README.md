@@ -44,8 +44,12 @@ This application allows you to save and retrieve orders. When an order is saved,
 - Returns a list of all orders.
 
 ### Retrieve a Specific Order
-**GET** `/order/{id}`
+**GET** `/orders/{id}`
 - Retrieves the order with the given ID.
+
+### Delete a Specific Order
+**DELETE** `/orders/{id}`
+- Deletes the order with the given ID.
 
 ### Sample Response
 ```json
