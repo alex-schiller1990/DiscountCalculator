@@ -1,0 +1,7 @@
+version: '1'
+services:
+  app:
+    image: discount-calculator-docker
+    build: .
+    ports:
+      - "8080:8080"
