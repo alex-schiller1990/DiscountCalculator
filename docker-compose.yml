@@ -1,7 +1,27 @@
 version: '1'
 services:
+  postgres:
+    image: 'postgres:latest'
+    container_name: postgres_db
+    environment:
+      - 'POSTGRES_DB=orders'
+      - 'POSTGRES_USER=user'
+      - 'POSTGRES_PASSWORD=password'
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
   app:
     image: discount-calculator-docker
     build: .
     ports:
       - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/orders
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:

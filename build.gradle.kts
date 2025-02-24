@@ -23,7 +23,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-rest")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
-	runtimeOnly("com.h2database:h2")
+	developmentOnly("org.springframework.boot:spring-boot-docker-compose")
+	runtimeOnly("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
