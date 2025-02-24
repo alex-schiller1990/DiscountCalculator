@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.schiller.discountCalculator.dto.ItemRequest;
 import de.schiller.discountCalculator.dto.OrderRequest;
 import de.schiller.discountCalculator.dto.OrderResponse;
+import de.schiller.discountCalculator.exception.GlobalExceptionHandler;
 import de.schiller.discountCalculator.service.OrderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,7 @@ class OrderControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(orderController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(orderController).setControllerAdvice(new GlobalExceptionHandler()).build();
         objectMapper = new ObjectMapper();
     }
 
@@ -59,6 +60,43 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.discountedAmount").value(BigDecimal.valueOf(20)))
                 .andExpect(jsonPath("$.discountPercentage").value(0.0));
 
+    }
+
+    @Test
+    void testCreateOrder_Failure_MissingCustomerAndItems() throws Exception {
+        OrderRequest orderRequest = new OrderRequest(null, null);
+
+        mockMvc.perform(post("/orders")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(orderRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.customerName").value("Customer Name is required"))
+                .andExpect(jsonPath("$.errors.items").value("At least one item is required"));
+    }
+
+    @Test
+    void testCreateOrder_Failure_EmptyCustomerAndItems() throws Exception {
+        OrderRequest orderRequest = new OrderRequest("", List.of());
+
+        mockMvc.perform(post("/orders")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(orderRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.customerName").value("Customer Name is required"))
+                .andExpect(jsonPath("$.errors.items").value("At least one item is required"));
+    }
+
+    @Test
+    void testCreateOrder_Failure_ItemFaultyData() throws Exception {
+        OrderRequest orderRequest = new OrderRequest("customer", List.of(new ItemRequest("", BigDecimal.valueOf(-1), 0)));
+
+        mockMvc.perform(post("/orders")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(orderRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors['items[0].productName']").value("Product Name is required"))
+                .andExpect(jsonPath("$.errors['items[0].price']").value("Price needs to be positive or zero"))
+                .andExpect(jsonPath("$.errors['items[0].quantity']").value("Quantity needs to be positive"));
     }
 
     @Test
